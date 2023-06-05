@@ -7,8 +7,10 @@
 ## 参考资料
 
 [OpenCV文档](https://docs.opencv.org/4.x/index.html)
+
 [learnOpenCV](https://learnopencv.com/)
 
 ## 目录
 
 - [图像的读取,显示与写入](docs/read_display_write.md)
+- [读取与写入视频](docs/read_write_video.md)
