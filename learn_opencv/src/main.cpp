@@ -4,97 +4,40 @@
 
 #define LOG(x) std::cout<< x << '\n'
 
-void video_capture()
-{
-	cv::VideoCapture video_capture("./video/Cars.mp4");
-
-	int time_lag{ 0 };
-
-	if (!video_capture.isOpened())
-		LOG("Video read failed!");
-	else
-	{
-		int fps = video_capture.get(cv::CAP_PROP_FPS);
-		LOG("Fps: " << fps);
-
-		int frame_count = video_capture.get(cv::CAP_PROP_FRAME_COUNT);
-		LOG("Frame count: " << frame_count);
-
-		time_lag = ((int)(1000 * (1 / (float)fps)));
-	}
-
-	while (video_capture.isOpened())
-	{
-		cv::Mat frame;
-
-		bool isSuccess = video_capture.read(frame);
-
-		if (isSuccess)
-			cv::imshow("Video_Frame", frame);
-
-		if (isSuccess == false)
-		{
-			LOG("Frame read failed or video camera is disconnected!");
-			break;
-		}
-
-		int key = cv::waitKey(time_lag);
-		if (key == 'q')
-		{
-			LOG("Stopping the video");
-			break;
-		}
-	}
-
-	video_capture.release();
-}
-
-void camera_capture()
-{
-	cv::VideoCapture video_capture(0);
-
-	int frame_width = static_cast<int>(video_capture.get(cv::CAP_PROP_FRAME_WIDTH));
-	int frame_height = static_cast<int>(video_capture.get(cv::CAP_PROP_FRAME_HEIGHT));
-
-	cv::Size frame_size(frame_width, frame_height);
-
-	int fps = 30;
-
-	cv::VideoWriter output("./save/output_video.mp4", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, frame_size);
-
-	while (video_capture.isOpened())
-	{
-		cv::Mat frame;
-
-		bool isSuccess = video_capture.read(frame);
-
-		if (isSuccess)
-		{
-			output.write(frame);
-			cv::imshow("Video_Frame", frame);
-		}
-
-		if (isSuccess == false)
-		{
-			LOG("Frame read failed or video camera is disconnected!");
-			break;
-		}
-
-		int key = cv::waitKey(30);
-		if (key == 'q')
-		{
-			LOG("Stopping the video");
-			break;
-		}
-	}
-
-	output.release();
-	video_capture.release();
-}
-
 int main()
 {
-	camera_capture();
+	cv::Mat image = cv::imread("./image/car_image.jpg");
+	cv::imshow("Origin Image", image);
+
+	int down_width = 300;
+	int down_height = 200;
+	cv::Mat resized_down_image;
+
+	cv::resize(image, resized_down_image, cv::Size(down_width, down_height), cv::INTER_LINEAR);
+
+	int up_width = 600;
+	int up_height = 400;
+	cv::Mat resized_up_image;
+
+	cv::resize(image, resized_up_image, cv::Size(up_width, up_height), cv::INTER_LINEAR);
+
+	cv::imshow("resize down image", resized_down_image);
+	cv::imshow("resize up image", resized_up_image);
+
+	double scale_up_x = 1.2;
+	double scale_up_y{ scale_up_x };
+
+	double scale_down = 0.6;
+
+	cv::Mat scaled_up_image, scaled_down_image;
+
+	cv::resize(image, scaled_up_image, cv::Size(), scale_up_x, scale_up_y, cv::INTER_LINEAR);
+	cv::resize(image, scaled_down_image, cv::Size(), scale_down, scale_down, cv::INTER_LINEAR);
+
+	cv::imshow("scale down image", scaled_down_image);
+	cv::imshow("scale up image", scaled_up_image);
+
+	cv::waitKey();
 
 	cv::destroyAllWindows();
 	return 0;
