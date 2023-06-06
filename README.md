@@ -15,3 +15,4 @@
 - [图像的读取,显示与写入](docs/read_display_write.md)
 - [读取与写入视频](docs/read_write_video.md)
 - [图像的缩放](docs/image_scaling.md)
+- [图像的裁剪](docs/crop_image.md)

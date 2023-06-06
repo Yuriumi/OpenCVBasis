@@ -6,36 +6,25 @@
 
 int main()
 {
-	cv::Mat image = cv::imread("./image/car_image.jpg");
-	cv::imshow("Origin Image", image);
+	cv::Mat image = cv::imread("./image/test.jpg");
 
-	int down_width = 300;
-	int down_height = 200;
-	cv::Mat resized_down_image;
+	if (image.empty())
+	{
+		LOG("Load image error!");
 
-	cv::resize(image, resized_down_image, cv::Size(down_width, down_height), cv::INTER_LINEAR);
+		return -1;
+	}
 
-	int up_width = 600;
-	int up_height = 400;
-	cv::Mat resized_up_image;
+	LOG("Image width: " << image.size().width);
+	LOG("Image height: " << image.size().height);
+	LOG("Image Channels: " << image.channels());
 
-	cv::resize(image, resized_up_image, cv::Size(up_width, up_height), cv::INTER_LINEAR);
+	cv::Mat img = image(cv::Range(80, 280), cv::Range(150, 330));
 
-	cv::imshow("resize down image", resized_down_image);
-	cv::imshow("resize up image", resized_up_image);
+	cv::imwrite("./save/crop_img.jpg", img);
 
-	double scale_up_x = 1.2;
-	double scale_up_y{ scale_up_x };
-
-	double scale_down = 0.6;
-
-	cv::Mat scaled_up_image, scaled_down_image;
-
-	cv::resize(image, scaled_up_image, cv::Size(), scale_up_x, scale_up_y, cv::INTER_LINEAR);
-	cv::resize(image, scaled_down_image, cv::Size(), scale_down, scale_down, cv::INTER_LINEAR);
-
-	cv::imshow("scale down image", scaled_down_image);
-	cv::imshow("scale up image", scaled_up_image);
+	cv::imshow("Origin image", image);
+	cv::imshow("Cropped image", img);
 
 	cv::waitKey();
 
