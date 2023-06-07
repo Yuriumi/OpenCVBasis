@@ -10,69 +10,67 @@
 
 int main()
 {
-	cv::Mat image = cv::imread("./image/sample.jpg");
+	cv::Mat image = cv::imread("./image/input-image-of-wood.jpg");
 
 	if (image.empty())
 	{
-		LOG("load image error!");
+		LOG("Load image error!");
 
 		return -1;
 	}
 
-	cv::imshow("Origin image", image);
+	cv::imshow("origin image", image);
 
-	cv::Mat draw_annotation_img;
-	
-	// line
-	cv::Point start_point(200, 80);
-	cv::Point end_point(450, 80);
-	// circle
-	cv::Point circle_center(415, 190);
-	int circle_radius = 100;
-	// ellipse
-	cv::Point axis1(100, 50);
-	cv::Point axis2(125, 50);
-	// rectangle
-	cv::Point rect_start_point(300, 115);
-	cv::Point rect_end_point(475, 225);
-	// text
-	cv::Point text_position(50, 350);
+	// none
+	cv::Mat kernel_none = (cv::Mat_<double>(3, 3) << 0, 0, 0, 0, 1, 0, 0, 0, 0);
+	cv::Mat filter_image;
+	bool none_filer{ true };
+	// blur
+	cv::Mat kernel_02 = cv::Mat::ones(5, 5, CV_64F);
+	cv::Mat kernel_blur = kernel_02 / 25;
+	bool blur_filter{ false };
+	// gaussian
+	bool gaussian_filter{ false };
+	// median blur
+	bool median_blur_filter{ false };
+	// sharp
+	cv::Mat kernel_sharp = (cv::Mat_<double>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
+	bool sharp_filter{ false };
+	// bilateral
+	bool bilateral_filter{ false };
 
-	cv::namedWindow("draw Window");
-	cvui::init("draw Window");
+	cv::namedWindow("Filter image");
+	cvui::init("Filter image");
 
-	bool draw_line{ false };
-	bool draw_circle{ false };
-	bool draw_ellipse{ false };
-	bool draw_rectangle{ false };
-	bool draw_text{ false };
-
-	while (cv::waitKey(30) != 'q')
+	while (cv::waitKey(15) != 'q')
 	{
-		draw_annotation_img = image.clone();
+		filter_image = image.clone();
 
-		cvui::window(draw_annotation_img, 15, 15, 200, 150, "Setting");
-		cvui::checkbox(draw_annotation_img, 35, 45, "Draw line", &draw_line);
-		cvui::checkbox(draw_annotation_img, 35, 65, "Draw circle", &draw_circle);
-		cvui::checkbox(draw_annotation_img, 35, 85, "Draw ellipse", &draw_ellipse);
-		cvui::checkbox(draw_annotation_img, 35, 105, "Draw rectangle", &draw_rectangle);
-		cvui::checkbox(draw_annotation_img, 35, 125, "Draw text", &draw_text);
+		if (none_filer)
+			cv::filter2D(image, filter_image, -1, kernel_none, cv::Point(-1, -1), 0, cv::BORDER_DEFAULT);
+		else if (blur_filter)
+			cv::filter2D(image, filter_image, -1, kernel_blur, cv::Point(-1, -1), 0, cv::BORDER_DEFAULT);
+		// cv::blur(filter_image, filter_image, cv::Size(5, 5));
+		else if (gaussian_filter)
+			cv::GaussianBlur(image, filter_image, cv::Size(5, 5), 0, 0);
+		else if (median_blur_filter)
+			cv::medianBlur(image, filter_image, (5, 5));
+		else if (sharp_filter)
+			cv::filter2D(image, filter_image, -1, kernel_sharp, cv::Point(-1, -1), 0, cv::BORDER_DEFAULT);
+		else if (bilateral_filter)
+			cv::bilateralFilter(image, filter_image, 9, 75, 75);
 
-		if (draw_line)
-			cv::line(draw_annotation_img, start_point, end_point, cv::Scalar(0, 255, 0), 2, cv::LINE_8);
-		if (draw_circle)
-			cv::circle(draw_annotation_img, circle_center, circle_radius, cv::Scalar(255, 0, 0), 2);
-		if (draw_ellipse)
-		{
-			cv::ellipse(draw_annotation_img, circle_center, axis1, 0, 0, 360, cv::Scalar(0, 0, 255), 3);
-			cv::ellipse(draw_annotation_img, circle_center, axis2, 90, 0, 360, cv::Scalar(255, 0, 0), 3);
-		}
-		if (draw_rectangle)
-			cv::rectangle(draw_annotation_img, rect_start_point, rect_end_point, cv::Scalar(0, 0, 255), 2);
-		if (draw_text)
-			cv::putText(draw_annotation_img, "I am a Happy dog!", text_position, cv::FONT_HERSHEY_COMPLEX, 1.5, cv::Scalar(250, 225, 100),2);
+		cvui::window(filter_image, 10, 10, 185, 185, "filter setting");
+		cvui::checkbox(filter_image, 25, 35, "none_filter", &none_filer);
+		cvui::text(filter_image, 15, 55, "image_blur");
+		cvui::checkbox(filter_image, 25, 75, "blur_filter", &blur_filter);
+		cvui::checkbox(filter_image, 25, 95, "gaussian_filter", &gaussian_filter);
+		cvui::checkbox(filter_image, 25, 115, "median_blur_filter", &median_blur_filter);
+		cvui::text(filter_image, 15, 135, "image_sharp");
+		cvui::checkbox(filter_image, 25, 155, "sharp_filter", &sharp_filter);
+		cvui::checkbox(filter_image, 25, 175, "bilateral_filter", &bilateral_filter);
 
-		cv::imshow("draw Window", draw_annotation_img);
+		cv::imshow("Filter image", filter_image);
 
 		cvui::update();
 	}
