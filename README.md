@@ -17,3 +17,4 @@
 - [图像的缩放](docs/image_scaling.md)
 - [图像的裁剪](docs/crop_image.md)
 - [图像基本变换](docs/basic_tranform.md)
+- [注释图像](docs/annotating_Images.md)
