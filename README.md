@@ -20,3 +20,4 @@
 - [注释图像](docs/annotating_Images.md)
 - [使用卷积过滤图像](docs/filter_convolution.md)
 - [图像阈值](docs/image_threshold.md)
+- [图像边缘检测](docs/edge_detection.md)

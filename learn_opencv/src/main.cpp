@@ -2,6 +2,7 @@
 #include <string>
 
 #include <opencv2/opencv.hpp>
+#include <pfd/portable-file-dialogs.h>
 
 #define CVUI_IMPLEMENTATION
 #include "../ref/cvui.h"
@@ -10,59 +11,64 @@
 
 int main()
 {
-	cv::Mat image = cv::imread("./image/threshold.jpg");
+	cv::Mat image = cv::imread("./image/input_image-1.jpg",0);
 
 	if (image.empty())
 	{
 		LOG("load image error!");
 
+		cv::destroyAllWindows();
 		return -1;
 	}
 
-	cv::imshow("src image", image);
+	cv::imshow("origin", image);
 
-	cv::namedWindow("image thresh");
-	cvui::init("image thresh");
+	cv::namedWindow("edge setting");
+	cvui::init("edge setting");
 
-	cv::Mat thresh_image;
+	cv::Mat edge_image;
+	cv::Mat ui_window(250,250,CV_8UC3);
 
-	double thresh_value{ 0 };
-	double max_value{ 255 };
+	bool open_sobel{ false };
+	bool open_x{ false };
+	bool open_y{ false };
+	bool open_xy{ false };
+	bool open_canny{ false };
 
-	bool open_inv{ false };
-	bool open_truncation{ false };
-	bool open_tozero{ false };
-	bool open_tozero_inv{ false };
-
-	while (cv::waitKey(30) != 'q')
+	while (cv::waitKey(15) != 'q')
 	{
-		thresh_image = image.clone();
+		edge_image = image.clone();
+		ui_window = cv::Scalar(93, 62, 42);
+		cv::Mat blur_image;
 
-		if (open_inv)
-			cv::threshold(image, thresh_image, thresh_value, max_value, cv::THRESH_BINARY_INV);
-		else
-			if (open_truncation)
-				cv::threshold(image, thresh_image, thresh_value, max_value, cv::THRESH_TRUNC);
-			else if(open_tozero)
-				cv::threshold(image, thresh_image, thresh_value, max_value, cv::THRESH_TOZERO);
-			else if(open_tozero_inv)
-				cv::threshold(image, thresh_image, thresh_value, max_value, cv::THRESH_TOZERO_INV);
+		cv::GaussianBlur(image, blur_image, cv::Size(3, 3), 0, 0);
+
+		if (open_sobel)
+		{
+			if (open_x)
+				cv::Sobel(blur_image, edge_image, CV_64F, 1, 0, 3);
+			else if (open_y)
+				cv::Sobel(blur_image, edge_image, CV_64F, 0, 1, 3);
+			else if (open_xy)
+				cv::Sobel(blur_image, edge_image, CV_64F, 1, 1, 3);
 			else
-				cv::threshold(image, thresh_image, thresh_value, max_value, cv::THRESH_BINARY);
+				edge_image = blur_image.clone();
+		}
+		else if (open_canny)
+		{
+			cv::Canny(blur_image, edge_image, 100, 200, 3, false);
+		}
+		cv::imshow("edge detection", edge_image);
 
-		cvui::window(thresh_image, 10, 10, 200, 245, "thresh setting");
-		cvui::text(thresh_image, 15, 35, "thresh_value:");
-		cvui::trackbar(thresh_image, 20, 50, 170, &thresh_value, (double)0.0, (double)255.0, 1, "%.0Lf");
-		cvui::text(thresh_image, 15, 105, "max_value:");
-		cvui::trackbar(thresh_image, 20, 120, 170, &max_value, (double)0.0, (double)255.0, 1, "%.0Lf");
-		cvui::checkbox(thresh_image, 15, 165, "open_thresh_inv", &open_inv);
-		cvui::checkbox(thresh_image, 15, 185, "open_truncation", &open_truncation);
-		cvui::checkbox(thresh_image, 15, 205, "open_tozero", &open_tozero);
-		cvui::checkbox(thresh_image, 15, 225, "open_tozero_inv", &open_tozero_inv);
-
-		cv::imshow("image thresh", thresh_image);
-
+		cvui::window(ui_window, 10, 10, 200, 220, "edge setting");
+		cvui::checkbox(ui_window, 15, 40, "open sobel decetion", &open_sobel);
+		cvui::checkbox(ui_window, 25, 60, "open sobel x", &open_x);
+		cvui::checkbox(ui_window, 25, 80, "open sobel y", &open_y);
+		cvui::checkbox(ui_window, 25, 100, "open sobel xy", &open_xy);
+		cvui::checkbox(ui_window, 15, 120, "open canny", &open_canny);
 		cvui::update();
+
+		cv::imshow("edge setting", ui_window);
 	}
 
 	cv::destroyAllWindows();
