@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 #include <pfd/portable-file-dialogs.h>
@@ -9,18 +10,9 @@
 
 #define LOG(x) std::cout<< x << '\n'
 
-cv::Point top_left_corner, bottom_right_corner;
-cv::Mat image;
-
-double scale_value{ 1.0 };
-double scale_min = 0.1;
-double scale_max = 2.0;
-
-void draw_rectangle(int action, int x, int y, int flags, void* userdata);
-
 int main()
 {
-	image = cv::imread("./image/input_image-2.jpg");
+	cv::Mat image = cv::imread("./image/image_1.jpg");
 
 	if (image.empty())
 	{
@@ -30,49 +22,36 @@ int main()
 		return -1;
 	}
 
-	cv::Mat temp = image.clone();
-	cv::Mat resize_image;
-	cv::Mat ui_frame(200, 200, CV_8UC3);
-	cv::namedWindow("Window");
-	cv::namedWindow("image setting");
-	cv::setMouseCallback("Window", draw_rectangle);
+	cv::Mat image_gray;
+	cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);
 
-	cvui::init("image setting");
+	cv::Mat image_thresh;
+	cv::threshold(image_gray, image_thresh, 150, 255, cv::THRESH_BINARY);
 
-	int k{ 0 };
+	cv::imshow("thresh binary", image_thresh);
 
-	while (k != 'q')
-	{
-		cv::imshow("Window", image);
+	// CHAIN_APPROX_NONE
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::findContours(image_thresh, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+	// Draw contours
+	cv::Mat origin_image_copy = image.clone();
+	cv::drawContours(origin_image_copy, contours, -1, cv::Scalar(0, 255, 0), 2);
+	cv::imshow("image contours", origin_image_copy);
 
-		if (k == 'c')
-			temp.copyTo(image);
+	cv::waitKey(0);
+	cv::destroyAllWindows();
 
-		cv::resize(temp, resize_image, cv::Size(), scale_value, scale_value, cv::INTER_LINEAR);
+	/*cv::Mat simple_image = image.clone();
 
-		cv::imshow("resise image", resize_image);
+	for (int i = 0; i < contours.size(); i++)
+		for (int j = 0; j < contours[i].size(); j++)
+			cv::circle(simple_image, (contours[i], contours[i][j]), 2, cv::Scalar(0, 255, 0), 2);
 
-		cvui::window(ui_frame, 10, 10, 180, 180, "image scale setting");
-		cvui::trackbar(ui_frame, 15, 35, 150, &scale_value, scale_min, scale_max, 1, "%.1Lf");
+	cv::imshow("simple image", simple_image);
 
-		cv::imshow("image setting", ui_frame);
-		cvui::update();
-
-		k = cv::waitKey(30);
-	}
+	cv::waitKey();*/
 
 	cv::destroyAllWindows();
 	return 0;
-}
-
-void draw_rectangle(int action, int x, int y, int flags, void* userdata)
-{
-	if (action == cv::EVENT_LBUTTONDOWN)
-		top_left_corner = cv::Point(x, y);
-	else if (action == cv::EVENT_LBUTTONUP)
-	{
-		bottom_right_corner = cv::Point(x, y);
-		cv::rectangle(image, top_left_corner, bottom_right_corner, cv::Scalar(0, 255, 0), 2, cv::LINE_8);
-		cv::imshow("Window", image);
-	}
 }
