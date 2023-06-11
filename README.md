@@ -21,3 +21,4 @@
 - [使用卷积过滤图像](docs/filter_convolution.md)
 - [图像阈值](docs/image_threshold.md)
 - [图像边缘检测](docs/edge_detection.md)
+- [鼠标与滑动条](docs/mouse_trackbar.md)

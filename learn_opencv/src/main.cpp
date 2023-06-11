@@ -9,9 +9,18 @@
 
 #define LOG(x) std::cout<< x << '\n'
 
+cv::Point top_left_corner, bottom_right_corner;
+cv::Mat image;
+
+double scale_value{ 1.0 };
+double scale_min = 0.1;
+double scale_max = 2.0;
+
+void draw_rectangle(int action, int x, int y, int flags, void* userdata);
+
 int main()
 {
-	cv::Mat image = cv::imread("./image/input_image-1.jpg",0);
+	image = cv::imread("./image/input_image-2.jpg");
 
 	if (image.empty())
 	{
@@ -21,56 +30,49 @@ int main()
 		return -1;
 	}
 
-	cv::imshow("origin", image);
+	cv::Mat temp = image.clone();
+	cv::Mat resize_image;
+	cv::Mat ui_frame(200, 200, CV_8UC3);
+	cv::namedWindow("Window");
+	cv::namedWindow("image setting");
+	cv::setMouseCallback("Window", draw_rectangle);
 
-	cv::namedWindow("edge setting");
-	cvui::init("edge setting");
+	cvui::init("image setting");
 
-	cv::Mat edge_image;
-	cv::Mat ui_window(250,250,CV_8UC3);
+	int k{ 0 };
 
-	bool open_sobel{ false };
-	bool open_x{ false };
-	bool open_y{ false };
-	bool open_xy{ false };
-	bool open_canny{ false };
-
-	while (cv::waitKey(15) != 'q')
+	while (k != 'q')
 	{
-		edge_image = image.clone();
-		ui_window = cv::Scalar(93, 62, 42);
-		cv::Mat blur_image;
+		cv::imshow("Window", image);
 
-		cv::GaussianBlur(image, blur_image, cv::Size(3, 3), 0, 0);
+		if (k == 'c')
+			temp.copyTo(image);
 
-		if (open_sobel)
-		{
-			if (open_x)
-				cv::Sobel(blur_image, edge_image, CV_64F, 1, 0, 3);
-			else if (open_y)
-				cv::Sobel(blur_image, edge_image, CV_64F, 0, 1, 3);
-			else if (open_xy)
-				cv::Sobel(blur_image, edge_image, CV_64F, 1, 1, 3);
-			else
-				edge_image = blur_image.clone();
-		}
-		else if (open_canny)
-		{
-			cv::Canny(blur_image, edge_image, 100, 200, 3, false);
-		}
-		cv::imshow("edge detection", edge_image);
+		cv::resize(temp, resize_image, cv::Size(), scale_value, scale_value, cv::INTER_LINEAR);
 
-		cvui::window(ui_window, 10, 10, 200, 220, "edge setting");
-		cvui::checkbox(ui_window, 15, 40, "open sobel decetion", &open_sobel);
-		cvui::checkbox(ui_window, 25, 60, "open sobel x", &open_x);
-		cvui::checkbox(ui_window, 25, 80, "open sobel y", &open_y);
-		cvui::checkbox(ui_window, 25, 100, "open sobel xy", &open_xy);
-		cvui::checkbox(ui_window, 15, 120, "open canny", &open_canny);
+		cv::imshow("resise image", resize_image);
+
+		cvui::window(ui_frame, 10, 10, 180, 180, "image scale setting");
+		cvui::trackbar(ui_frame, 15, 35, 150, &scale_value, scale_min, scale_max, 1, "%.1Lf");
+
+		cv::imshow("image setting", ui_frame);
 		cvui::update();
 
-		cv::imshow("edge setting", ui_window);
+		k = cv::waitKey(30);
 	}
 
 	cv::destroyAllWindows();
 	return 0;
+}
+
+void draw_rectangle(int action, int x, int y, int flags, void* userdata)
+{
+	if (action == cv::EVENT_LBUTTONDOWN)
+		top_left_corner = cv::Point(x, y);
+	else if (action == cv::EVENT_LBUTTONUP)
+	{
+		bottom_right_corner = cv::Point(x, y);
+		cv::rectangle(image, top_left_corner, bottom_right_corner, cv::Scalar(0, 255, 0), 2, cv::LINE_8);
+		cv::imshow("Window", image);
+	}
 }
