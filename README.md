@@ -23,3 +23,4 @@
 - [图像边缘检测](docs/edge_detection.md)
 - [鼠标与滑动条](docs/mouse_trackbar.md)
 - [图像轮廓检测](docs/contour_detection.md)
+- [视频简单背景估计](docs/video_background_estimstion.md)
